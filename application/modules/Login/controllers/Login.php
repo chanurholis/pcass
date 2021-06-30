@@ -1,83 +1,84 @@
 <?php
 class Login extends CI_Controller
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->load->model('M_login');
-        $this->load->library('form_validation');
-    }
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->model('M_login');
+		$this->load->library('form_validation');
+	}
 
-    public function index()
-    {
-        if ($this->session->userdata('status') == NULL) {
-            // Biarkan saja seperti itu.
-        } else {
-            $this->session->sess_destroy();
-        }
+	public function index()
+	{
+		if ($this->session->userdata('status') == NULL) {
+			// Biarkan saja seperti itu.
+		} else {
+			$this->session->sess_destroy();
+		}
 
-        $this->form_validation->set_rules('username', 'Username', 'required', [
-            'required' => 'Username harus diisi.'
-        ]);
-        $this->form_validation->set_rules('password', 'Password', 'required', [
-            'required' => 'Password harus diisi.'
-        ]);
+		$this->form_validation->set_rules('username', 'Username', 'required', [
+			'required' => 'Username harus diisi'
+		]);
 
-        if ($this->form_validation->run() == false) {
-            $data['judul'] = 'Login PCA';
-            $this->load->view('login', $data);
-        } else {
-            $username = htmlspecialchars($this->input->post('username', true));
-            $password = htmlspecialchars($this->input->post('password', true));
+		$this->form_validation->set_rules('password', 'Password', 'required', [
+			'required' => 'Password harus diisi'
+		]);
 
-            $user = $this->db->get_where('user', ['username' => $username])->row_array();
+		if ($this->form_validation->run() == false) {
+			$data['judul'] = 'Login | PC Assembling';
+			$this->load->view('login', $data);
+		} else {
+			$username = htmlspecialchars($this->input->post('username', true));
+			$password = htmlspecialchars($this->input->post('password', true));
 
-            $where = array(
-                'username' => $user['username']
-            );
+			$user = $this->db->get_where('user', ['username' => $username])->row_array();
 
-            $cek = $this->M_login->cek($where);
-            if ($cek != NULL) {
-                if ($user['is_active'] == 'Aktif') {
-                    if (password_verify($password, $cek->password)) {
+			$where = array(
+				'username' => $user['username']
+			);
 
-                        $data_session = array(
-                            'username' => $user['username'],
-                            'role' => $user['role'],
-                            'status' => 'login'
-                        );
+			$cek = $this->M_login->cek($where);
+			if ($cek != NULL) {
+				if ($user['is_active'] == 'Aktif') {
+					if (password_verify($password, $cek->password)) {
 
-                        $data = ['last_login' => date('Y-m-d H:i:s')];
+						$data_session = array(
+							'username' => $user['username'],
+							'role' => $user['role'],
+							'status' => 'login'
+						);
 
-                        $this->db->where($where);
-                        $this->db->update('user', $data);
+						$data = ['last_login' => date('Y-m-d H:i:s')];
 
-                        $this->session->set_userdata($data_session);
+						$this->db->where($where);
+						$this->db->update('user', $data);
 
-                        $this->session->set_flashdata('login', 'Login');
+						$this->session->set_userdata($data_session);
 
-                        redirect('Home');
-                    } else {
-                        $this->session->set_flashdata('message', '<small class="text-danger">
+						$this->session->set_flashdata('login', 'Login');
+
+						redirect('Home');
+					} else {
+						$this->session->set_flashdata('message', '<small class="text-danger">
                         Mohon maaf, terjadi kesalahan.</small>');
-                        redirect('/');
-                    }
-                } else {
-                    $this->session->set_flashdata('message', '<small class="text-danger">
+						redirect('/');
+					}
+				} else {
+					$this->session->set_flashdata('message', '<small class="text-danger">
                     Mohon maaf, akun ini belum diaktivasi.</small>');
-                    redirect('/');
-                }
-            } else {
-                $this->session->set_flashdata('message', '<small class="text-danger">
+					redirect('/');
+				}
+			} else {
+				$this->session->set_flashdata('message', '<small class="text-danger">
                 Mohon maaf, terjadi kesalahan.</small>');
-                redirect('/');
-            }
-        }
-    }
+				redirect('/');
+			}
+		}
+	}
 
-    public function logout()
-    {
-        $this->session->sess_destroy();
-        redirect('/');
-    }
+	public function logout()
+	{
+		$this->session->sess_destroy();
+		redirect('/');
+	}
 }
